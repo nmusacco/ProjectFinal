@@ -26,11 +26,12 @@ bool killmovement = false;
 // Gordon's timer & x11/opengl code
 #include "gordoncode.cpp"
 
-// game textures/sprite
+// game textures/sprite draw commands
 #include "textures.cpp"
 
 
-// used for fps counter
+// NOT used for fps counter!
+// now used for sprite timer
 int frames = 0;
 timespec start;
 
@@ -112,7 +113,7 @@ int main()
 			physicsCountdown -= physicsRate;
 		}
 		
-		
+		// used for sprite timing
 		if(frames > 2)
 		{
 			clock_gettime(CLOCK_REALTIME, &start);
@@ -350,7 +351,11 @@ void render(Game * game)
 			glVertex2i(window_width, 0);
 		glEnd();
 		
+		
+		drawSpike();
+		
 		drawSkeleton(game);
+		
 	}
 	
 	

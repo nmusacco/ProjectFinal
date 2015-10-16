@@ -21,6 +21,8 @@
 // http://opengameart.org/content/platformer-animations
 
 
+Ppmimage * spike = NULL;
+GLuint spikeTexture; 
 
 Ppmimage * skeletonBase = NULL;
 GLuint skeletonTexture;
@@ -30,17 +32,28 @@ GLuint backgroundTexture;
 
 GLuint silhouetteTexture;
 
+GLuint silhouetteTextureSpikes;
+
 void loadTextures()
 {
 	// load image from ppm structure
 	skeletonBase = ppm6GetImage("./images/platformer_sprites_pixelized_0.ppm");
 	background = ppm6GetImage("./images/background.ppm");
-	
+	spike = ppm6GetImage("./images/superspikes.ppm");
 	
 	// generate opengl texture element
 	glGenTextures(1, &skeletonTexture);
 	glGenTextures(1, &backgroundTexture);
 	glGenTextures(1, &silhouetteTexture);
+	glGenTextures(1, &spikeTexture);
+	
+	
+	/////////////////// spikes ////////////////
+	glBindTexture(GL_TEXTURE_2D, spikeTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, spike->width, spike->height,
+			0, GL_RGB, GL_UNSIGNED_BYTE, spike->data);
 	
 	
 	/////////////////// Skeleton sprite texture ////////////////////////
@@ -55,7 +68,7 @@ void loadTextures()
 				0, GL_RGB, GL_UNSIGNED_BYTE, skeletonBase->data);
 
 	
-	//////////////////// silhouette///////////////////////
+	//////////////////// silhouette for character///////////////////////
 	
 	glBindTexture(GL_TEXTURE_2D, silhouetteTexture);
 	
@@ -78,6 +91,42 @@ void loadTextures()
 					0, GL_RGB, GL_UNSIGNED_BYTE, background->data);
 	
 	
+}
+
+void drawSpike()
+{
+	glPushMatrix();
+	glTranslatef(0, 5, 0);
+	glBindTexture(GL_TEXTURE_2D, spikeTexture);
+
+	glBindTexture(GL_TEXTURE_2D, silhouetteTexture);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glColor4ub(255,255,255,255);
+	
+	int wid = spike->width;
+	
+	glBegin(GL_QUADS);
+	// corner coordinates must follow this order
+	/*glTexCoord2f(0, 0.0); glVertex2i(-wid, wid); // top left
+	glTexCoord2f(0,  1); glVertex2i(-wid,-wid); //bottom left
+	glTexCoord2f(1, 1); glVertex2i( wid,-wid); // bottom right
+	glTexCoord2f(1, 0); glVertex2i( wid, wid); // top right */
+	
+			glTexCoord2f(0,1);
+			glVertex2i(0,0);
+		glTexCoord2f(0,0);
+			glVertex2i(0, wid);
+		glTexCoord2f(1,0);
+			glVertex2i(wid, wid);
+		glTexCoord2f(1,1);
+			glVertex2i(wid, 0);
+		glEnd();
+
+	glEnd();
+	glPopMatrix();
+	
+	glDisable(GL_ALPHA_TEST);
 }
 
 
@@ -126,6 +175,7 @@ float frame = 0;
 	
 
 // frames determines how the sprite is drawn, timer
+// frame is the x axis distance between cells
 void drawSkeleton(Game * game)
 {
 	
@@ -181,7 +231,7 @@ float toplvl = 0.0f;
 	// lower level of texture
 	if(frame > 7 * x_increment)
 	{
-		cout << "NEXT" << endl;
+		//cout << "NEXT" << endl;
 		h = 0.0;
 		lvl = 2;
 		toplvl = 1 * 0.111111111;
@@ -194,10 +244,8 @@ float toplvl = 0.0f;
 		toplvl = 0.0;
 		frame = 4*x_increment;
 	}
-	//if(h != 0,0)
-		//h = frame;
-	
-	cout << frame/x_increment << endl;
+
+	//cout << frame/x_increment << endl;
 	renderCell(frame, x_increment, y_increment, lvl, toplvl, game);
 }
 
