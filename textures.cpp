@@ -11,6 +11,9 @@
 // OLD!!! from 2007, not exactly correct but helpful
 // http://www.gamedev.net/page/resources/_/technical/opengl/rendering-efficient-2d-sprites-in-opengl-using-r2429
 
+// explaination of texture sprite coordinates
+// http://stackoverflow.com/questions/11457394/texture-sampling-coordinates-to-render-a-sprite
+
 // using this site https://convertio.co/png-ppm/ for png to ppm conversion 
 // Skeleton spritesheet by MoikMellah
 // http://opengameart.org/content/mv-platformer-skeleton
@@ -30,7 +33,7 @@ GLuint silhouetteTexture;
 void loadTextures()
 {
 	// load image from ppm structure
-	skeletonBase = ppm6GetImage("./images/skeletonBase.ppm");
+	skeletonBase = ppm6GetImage("./images/platformer_sprites_pixelized_0.ppm");
 	background = ppm6GetImage("./images/background.ppm");
 	
 	
@@ -78,68 +81,123 @@ void loadTextures()
 }
 
 
-float frame = 1;
 
 
-// framerate determines how the sprite is drawn
-void drawSkeleton(Game * game)
+// Don't touch works
+void renderCell(float f, float x_i, float y_i, float lvl, float toplvl, Game * g)
 {
-	// glTexCoord2i int
-	// glTexCoord2f float
+	int wid = 10 * g->player.width;//skeletonBase->width;
 	
-	
-
 	glPushMatrix();
-	glTranslatef(game->player.position.x, game->player.position.y + game->player.width*5, 0);
+	glTranslatef(g->player.position.x, g->player.position.y + g->player.width*5, 0);
 	glBindTexture(GL_TEXTURE_2D, skeletonTexture);
 
-	
+	if(g->player.left)
+		glScalef( -1.0f, 1, 1);
+	if(g->player.right)
+		glScalef(1.0f, 1, 1 );
+
 	glBindTexture(GL_TEXTURE_2D, silhouetteTexture);
 	glEnable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.0f);
 	glColor4ub(255,255,255,255);
 	
-	int wid = 10 * game->player.width;//skeletonBase->width;
-	//int h = skeletonBase->height;
 	
-	cout << frame << endl;
-		
-	if(frame > .7)
-		frame = 0.0;
-	
-	if(game->player.velocity.x == 0)
-		frame = 0; // starting position
-
-	if(game->player.left)
-		glScalef( -1.0f, 1, 1 );
-	
-	if(game->player.right)
-		glScalef(1.0f, 1, 1 );
-	
-	if(game->player.velocity.y > 0) // up
-		frame = 0.8;
-	
-	if(game->player.velocity.y < 0) // down
-		frame = 0.7;
+	if(lvl == 2)
+		f -= 8*x_i;
 	
 	glBegin(GL_QUADS);
-	
-	
-	/*glTexCoord2f(0.0f, 0.1); glVertex2i(-wid,-wid);
-				glTexCoord2f(0.0f, 0.0f); glVertex2i(-wid, wid);
-				glTexCoord2f( 0.1f, 0.0f); glVertex2i( wid, wid);
-				glTexCoord2f(0.1f, 0.1f); glVertex2i( wid,-wid);*/
-
-				
-	glTexCoord2f(frame, 0.1); glVertex2i(-wid,-wid);
-	glTexCoord2f(frame, 0); glVertex2i(-wid, wid);
-	glTexCoord2f(frame + 0.1, 0); glVertex2i( wid, wid);
-	glTexCoord2f(0.1 + frame, 0.1f); glVertex2i( wid,-wid);
+	// corner coordinates must follow this order
+	glTexCoord2f(f, 0.0 + toplvl); glVertex2i(-wid, wid); // top left
+	glTexCoord2f(f,  lvl * y_i); glVertex2i(-wid,-wid); //bottom left
+	glTexCoord2f(f + x_i, lvl * y_i); glVertex2i( wid,-wid); // bottom right
+	glTexCoord2f(f + x_i, 0.0 + toplvl); glVertex2i( wid, wid); // top right
 
 	glEnd();
 	glPopMatrix();
 	
 	glDisable(GL_ALPHA_TEST);
+}
+
+
+
+float frame = 0;
+
 	
+
+// framerate determines how the sprite is drawn
+void drawSkeleton(Game * game)
+{
+	
+	// spritesheet has 8 sprites cells on the x axis 1/8 = 0.125
+	// spritesheet has 9 sprites cells on the y axis 1/9 = 0.111
+	float x_increment = 0.125;
+	float y_increment = 0.111;
+
+	
+	if(frame <= 3*x_increment)
+		frame = 4*x_increment;
+	
+
+	
+	
+	int lvl = 1;
+float toplvl = 0.0f;
+	float h = 1.0;
+	
+	
+	if(game->player.velocity.y > 0) // up
+	{
+		frame = 5*x_increment;
+		lvl = 1;
+		toplvl = 0.0f;
+	}
+	if(game->player.velocity.y < 0) // down
+	{
+		frame = 3*x_increment;
+		lvl = 1;
+		toplvl = 0.0f;
+	}
+	if(game->player.velocity.x == 0 && !game->inAir())
+	{
+		frame = 0.0; // starting position 
+		lvl = 9;
+		toplvl =  8 * 0.1111111111;
+		if(game->player.velocity.y > 0) // up
+	{
+		frame = 5*x_increment;
+		lvl = 1;
+		toplvl = 0.0f;
+	}
+	if(game->player.velocity.y < 0) // down
+	{
+		frame = 3*x_increment;
+		lvl = 1;
+		toplvl = 0.0f;
+	}
+	}
+	
+	
+	// lower level of texture
+	if(frame > 7 * x_increment)
+	{
+		cout << "NEXT" << endl;
+		h = 0.0;
+		lvl = 2;
+		toplvl = 1 * 0.111111111;
+	}
+	
+	
+	if(frame > 11 * x_increment)
+	{
+		lvl = 1;
+		toplvl = 0.0;
+		frame = 4*x_increment;
+	}
+	//if(h != 0,0)
+		//h = frame;
+	
+	cout << frame/x_increment << endl;
+	renderCell(frame, x_increment, y_increment, lvl, toplvl, game);
 }
 

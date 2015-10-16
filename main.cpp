@@ -112,7 +112,7 @@ int main()
 		}
 		
 		
-		if(frames > 5)
+		if(frames > 2)
 		{
 			clock_gettime(CLOCK_REALTIME, &start);
 			frames = 0;
@@ -243,7 +243,7 @@ void physics(Game * game)
 		game->player.right = false;
 		game->player.left = true;
 		if(frames == 1)
-			frame += 0.1;
+			frame += 0.125;
 		//cout << "left" << endl;
 		game->accelX(-1 * INITIAL_VELOCITY);
 	}
@@ -253,7 +253,7 @@ void physics(Game * game)
 		game->player.left = false;
 		game->player.right = true;
 		if(frames == 1)
-			frame += 0.1;
+			frame +=  0.125;
 		//cout << "right" << endl;
  		game->accelX(INITIAL_VELOCITY);
 	}
