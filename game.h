@@ -19,6 +19,11 @@
 #include <iostream>
 
 
+
+
+
+
+
 using std::cout;
 using std::endl;
 
@@ -78,7 +83,12 @@ class Game
 		
 		int window_height;
 		int window_width;
-		int gravity; // default is gonna be 1 unless set otherwise
+		
+		int int_vel;
+		int max_vel;
+		float gravity; // default is gonna be 1 unless set otherwise
+		
+		
 		int powerupTimer; // in seconds
 		
 		

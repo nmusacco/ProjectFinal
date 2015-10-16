@@ -125,7 +125,7 @@ float frame = 0;
 
 	
 
-// framerate determines how the sprite is drawn
+// frames determines how the sprite is drawn, timer
 void drawSkeleton(Game * game)
 {
 	
@@ -158,7 +158,7 @@ float toplvl = 0.0f;
 		lvl = 1;
 		toplvl = 0.0f;
 	}
-	if(game->player.velocity.x == 0 && !game->inAir())
+	if(game->player.velocity.x == 0)
 	{
 		frame = 0.0; // starting position 
 		lvl = 9;

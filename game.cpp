@@ -86,12 +86,19 @@ float Game::velX()
 	return player.velocity.x;
 }
 
+// TODO fix gravity when window resizes
 void Game::setResolution(int x, int y)
 {
 	window_width = x;
 	window_height = y;
 	player.width = window_height*0.01;
 	player.height = window_height*0.05;
+	
+	//if(y > 600*2)
+	  //gravity = 2;
+	
+	//init_vel = 
+	//max_vel = 
 }
 
 void Game::setPos(float x = 0, float y = 0)

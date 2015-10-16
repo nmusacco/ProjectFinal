@@ -44,6 +44,7 @@ using std::cout;
 using std::endl;
 
 
+// TODO fix gravity when window resizes
 #define GRAVITY 1
 #define MAX_VELOCITY 10
 #define INITIAL_VELOCITY 5
@@ -264,7 +265,7 @@ void physics(Game * game)
 		game->accelY(2 * INITIAL_VELOCITY);
 	}
 	 
-	if(killmovement && game->inAir()) // kill movement on x axis only
+	if(killmovement) // kill movement on x axis only
 		game->player.velocity.x = 0;
 	
 	
@@ -358,7 +359,7 @@ void render(Game * game)
 	r.bot = window_height - 20;
 	r.left = 10;
 	r.center = 0;
-	ggprint8b(&r, 16, 0x00FFFF00, "fps: %i",  static_cast<int>(frames/timeDiff(&start, &timeCurrent)));
+	//ggprint8b(&r, 16, 0x00FFFF00, "fps: %i",  static_cast<int>(frames/timeDiff(&start, &timeCurrent)));
 	ggprint8b(&r, 16, 0x00FFFF00, "PhysicsRate: %i", static_cast<int>(1/physicsRate));
 	ggprint8b(&r, 16, 0x00FFFF00, "water particles: %i", numParticles);
 	ggprint8b(&r, 16, 0x00FFFF00, "Hit sides: %i", game->checkLeftScreenHit() || game->checkRightScreenHit());
