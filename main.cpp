@@ -63,7 +63,7 @@ int numParticles = 0;
 bool bubbler = false;
 bool setbackground = false;
 
-#include "nicholasm.cpp"
+#include "nicholasM.cpp"
 
 
 int main()
