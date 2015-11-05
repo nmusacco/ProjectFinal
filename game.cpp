@@ -1,9 +1,16 @@
+// CS335 fall 2015
+// ===========================
+// Final Project: Group 2
+// 
+// student: Pedro Gonzalez
+// 
+// ===========================
+
 
 #include "game.h"
 
-int PLAYER_WIDTH;
-int PLAYER_HEIGHT;
-
+#include <stdlib.h>
+#include <math.h> // atan2(); 
 
 Game::Game()
 {
@@ -14,38 +21,42 @@ Game::Game()
 	powerupTimer = 14;
 
 	powerups = NULL;
+	//missiles = NULL;
 
 	accelY(-1);
 	if_jump = false;
 	if_hit = false;
 	run = true;
+	guts = false;
+	state = 1;
 }
 
-/*
-void addPowerup()
+// create ONE missile
+void Game::createMissiles()
 {
-int x = RANDOM;
-iny y = window_height;
 
-int width = window_width * 0.02; 
-int height = window_height * 0.02;
+	missiles.nextframe = 0;
+	int x = this->window_width/2;
+	int y = this->window_height/2;
+	
+	int width = 3*player.width;
+	int height = 2*player.height;
+	
+	missiles.position.x = x;
+	missiles.position.y = y;
+	missiles.width = width;
+	missiles.height = height;
 
-if(powerups == NULL)
-{
-powerups = new Powerup();
-powerups->position, 
-return;
+	cout << "missile created" << endl;
 }
 
-Powerup * p = powerups;
-while(p != NULL)
-p = p->next;
 
-p = new Powerup();
-}*/
 
 bool Game::inAir()
 {
+	//if(checkCollision())
+		//return false;
+	
 	if(player.position.y > 0 && if_jump == true)
 	{
 		if_jump = false;
@@ -58,21 +69,58 @@ void Game::applyGravity()
 {
 	if(player.position.y - player.height > 0)
 		accelY(-0.25 * gravity);
-	//accelY(-1 * gravity);
-
-
+	
 	Powerup * p = powerups;
 	while(p != NULL)
 	{
 		if(p->position.y - p->height > 0)
-			p->velocity.y += -0.25 * gravity;
+		p->velocity.y += -0.25 * gravity;
 		p = p->next;
 	}
+}
+
+void Game::missileChasePlayer()
+{
+	float x = missiles.position.x;
+	float y = missiles.position.y;
+	float speed = 2;
+	float x_vel;
+	float y_vel;
+
+	missiles.nextframe++;
+	
+	if(posX() > x)   
+		x_vel = speed;
+	else if(posX() == x)
+		x_vel = 0;
+	else	
+		x_vel = -speed;
+	
+	if(posY() > y)
+		y_vel = speed;
+	else if(posY() == y)
+		y_vel = 0;
+	else
+		y_vel = -speed;
+
+	missiles.velocity.x = x_vel;
+	missiles.velocity.y = y_vel;
 }
 
 void Game::setGravity(int g)
 {
 	gravity = g;
+}
+
+
+float Game::posX()
+{
+	return player.position.x;
+}
+
+float Game::posY()
+{
+	return player.position.y;
 }
 
 
@@ -93,13 +141,19 @@ void Game::setResolution(int x, int y)
 	window_height = y;
 	player.width = window_height*0.01;
 	player.height = window_height*0.05;
+	missiles.width = 3*player.width;
+	missiles.height = 2*3*player.height;
 	
-	//if(y > 600*2)
-	  //gravity = 2;
 	
-	//init_vel = 
-	//max_vel = 
+	
+	for(int i = 0; i < 5; ++i)
+	{
+		platform[i].width = player.width * 15;
+		platform[i].height = player.height * 0.35;
+		//platform[i].pos.y += 1.0/6.0 *window_height* (i + 1) + platform[i].height*2;
+	}
 }
+
 
 void Game::setPos(float x = 0, float y = 0)
 {
@@ -137,44 +191,35 @@ void Game::move()
 {
 	player.position.x += player.velocity.x;
 	player.position.y += player.velocity.y;
+	
+	missiles.position.x += missiles.velocity.x;
+	missiles.position.y += missiles.velocity.y;
+
+	//player.position.y -= 0.1 *player.height;
+	for(int i = 0; i < 5; ++i)
+			platform[i].pos.y -= 0.04 * player.height;
 }
 
-
-
-// ----------------------------------------------
-
-// -----------------------------------------
-// collision bottom 
-void Game::checkBottomScreen()
+void Game::updatePlatforms()
 {
-	// bottom of screen, allow double jump
-	if(player.position.y - player.height <= 0) // WORKS!!!
-	{
-		setPosY(player.height);
-		setAccel(velX(),0);
-		if_jump = true;
-	}
-
+	//int width = player.width * 15;
+	//int height = player.height * 0.35;
+	for(int i = 0; i < 5; ++i)
+		if(platform[i].pos.y < 0)
+		{
+			srand(time(NULL));
+			platform[i].pos.x= rand()%window_width;
+			// h_w - h_w/5 * (i + 1) + player height * 2
+			platform[i].pos.y = window_height + platform[i].height;//-20;//window_height - 1.0/6.0 *window_height* (i + 1) + platform[i].height*2;
+		}
 }
 
-bool Game::checkLeftScreenHit()
-{
-	// left side of screen
-	if(player.position.x - player.width <= 0)
-	{
-		setPosX(player.width);
-		return true;
-	}
-	return false;
-}
+#include "brandiD.cpp"
 
-bool Game::checkRightScreenHit()
+
+// remove all missiles, platforms etc that are remaining in game?
+// deallocate here!
+Game::~Game()
 {
-	// right side of screen
-	if(player.position.x + player.width >= window_width)
-	{
-		setPosX(window_width - player.width);
-		return true;
-	}	
-	return false;
+	
 }

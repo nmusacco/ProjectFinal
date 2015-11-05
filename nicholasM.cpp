@@ -1,98 +1,233 @@
-//Nicholas Musacco
-//CS 335
+// CS335 fall 2015
+// ===========================
+// Final Project: Group 2
+// 
+// student: Nicholas Musacco
+// 
+// ===========================
 
+//
+//
+//Currently contains the physics function along with basic 
+//pause features to stop motion when the game is paused
+//
+//Future addition will include a pause screen that will
+//pop up with the Esc key is pressed
+//
+//The pause screen will have a few buttons that will be
+//clicked by the users mouse, the buttons will be resume and quit
+//Also when the game is paused the score will be put up
 
-
-
-bool pausegame = false;
+//bool pausegame = true;
 
 
 void physics(Game * game)
 {
 
-    game->inAir(); 
-    game->checkBottomScreen();
-
-    if(!pausegame)
+    if(game->state == RUN_GAME)
     {
-	game->applyGravity();
+		game->inAir(); 
+		game->updatePlatforms();
+		game->applyGravity();
+		if(game->checkBottomScreen()) // spikes collision?
+			game->guts = true;
+		game->missileChasePlayer();
+		game->checkCollision();
 
+		if(game->checkMissileHit())
+			game->guts = true;
+		
+        if(keys[XK_Left]) // left
+        {
+            game->player.right = false;
+            game->player.left = true;
+            if(frames == 1)
+                frame += 0.125;
+            //cout << "left" << endl;
+            game->accelX(-1 * INITIAL_VELOCITY);
+        }
 
-	if(keys[XK_Left]) // left
-	{
-	    game->player.right = false;
-	    game->player.left = true;
-	    if(frames == 1)
-		frame += 0.125;
-	    //cout << "left" << endl;
-	    game->accelX(-1 * INITIAL_VELOCITY);
-	}
+        if(keys[XK_Right]) // right
+        {
+            game->player.left = false;
+            game->player.right = true;
+            if(frames == 1)
+                frame +=  0.125;
+            //cout << "right" << endl;
+            game->accelX(INITIAL_VELOCITY);
+        }
 
-	if(keys[XK_Right]) // right
-	{
-	    game->player.left = false;
-	    game->player.right = true;
-	    if(frames == 1)
-		frame +=  0.125;
-	    //cout << "right" << endl;
-	    game->accelX(INITIAL_VELOCITY);
-	}
+        if(keys[XK_space] && game->if_jump) // spacebar
+        {
+            //cout << "jump" <<endl;
+	
+            game->accelY(2 * INITIAL_VELOCITY);
+        }
 
-	if(keys[XK_space] && game->if_jump) // spacebar
-	{
-	    //cout << "jump" <<endl;
-	    game->accelY(2 * INITIAL_VELOCITY);
-	}
+        if(killmovement && game->inAir()) // kill movement on x axis only
+            game->player.velocity.x = 0;
 
-	if(killmovement) // kill movement on x axis only
-	    game->player.velocity.x = 0;
+        if(game->velX() > MAX_VELOCITY)
+            game->player.velocity.x = MAX_VELOCITY;
+        if(game->velX() < -1 * MAX_VELOCITY)
+            game->player.velocity.x = -1 * MAX_VELOCITY;
 
-	if(game->velX() > MAX_VELOCITY)
-	    game->player.velocity.x = MAX_VELOCITY;
-	if(game->velX() < -1 * MAX_VELOCITY)
-	    game->player.velocity.x = -1 * MAX_VELOCITY;
-
-	if(!pausegame)
-	{
-	    game->move();
-	}
-
+        game->move();
     }
     int x_bubbler = 100;
     int y_bubbler = window_height;
 
     if(bubbler) // if bubbler is toggled only stream water from the top, no mouse involved
     {
-	for(int i = 0; i < window_height * 0.15; i++)
-	{
-	    x_bubbler += rnd()*10;
-	    makeParticle(x_bubbler, y_bubbler);
-	}
+        for(int i = 0; i < window_height * 0.15; i++)
+        {
+            x_bubbler += rnd()*10;
+            makeParticle(x_bubbler, y_bubbler);
+        }
     }
 
-    // particles
+	
+	if(game->guts == false) // respawn, reset guts animation
+		numblood = 0;
+	
+    // waterfall settings
     Particle *p = &par[numParticles];
     for(int i = 0; i < numParticles; ++i)
     {
-	p = &par[i];
-	p->s.center.x += p->velocity.x;
-	p->s.center.y += p->velocity.y;
-	p->velocity.y -= 0.1; 
+        p = &par[i];
+        p->s.center.x += p->velocity.x;
+        p->s.center.y += p->velocity.y;
+        p->velocity.y -= 0.1; 
 
-	if (p->s.center.y < 0.0 || p->s.center.y > window_height) 
-	{
-	    //std::cout << "off screen" << std::endl;
-	    memcpy(&par[i], &par[numParticles -1], 
-		    sizeof(Particle));
-	    numParticles--;
-	}
+        if (p->s.center.y < 0.0 || p->s.center.y > window_height) 
+        {
+            //std::cout << "off screen" << std::endl;
+            memcpy(&par[i], &par[numParticles -1], 
+                    sizeof(Particle));
+            numParticles--;
+			//if(numParticles == 0)
+				//game->guts = false;
+        }
     }
+	
+	// blood settings
+    Particle *p2 = &blood[numblood];
+    for(int i = 0; i < numblood; ++i)
+    {
+        p2 = &blood[i];
+        p2->s.center.x += p2->velocity.x;
+        p2->s.center.y += p2->velocity.y;
+        p2->velocity.y -= 0.1; 
+
+        if (p2->s.center.y < 0.0 || p2->s.center.y > window_height) 
+        {
+            memcpy(&blood[i], &blood[numblood -1], 
+                    sizeof(Particle));
+            numblood--;
+        }
+    }
+}
+
+
+int check_keys(XEvent *e, Game * game)
+{
+    int key = XLookupKeysym(&e->xkey, 0);
+
+
+    killmovement = true;
+    if(e->type == KeyRelease) 
+    {
+        keys[key] = 0;
+        if(key == XK_space)
+            killmovement = false;
+    }
+
+    if(e->type == KeyPress)
+    {
+        keys[key] = 1;
+		
+		if(key == XK_k) // respawn
+		{
+			if(game->guts == true) // 
+			{
+				game->setPos(window_width/2, window_height);
+				game->guts = false;
+			}
+		}
+		
+        if(key == XK_p)
+        {
+	    if(game->state == PAUSE_MENU)
+                game->state = RUN_GAME;
+	    else
+		game->state = PAUSE_MENU;
+	    
+        }
+        if(game->state == RUN_GAME)
+        {
+            if(key != XK_Left || key != XK_Right)
+                killmovement = false;
+
+            if(key == XK_b)
+            {
+                if(bubbler)
+                    bubbler = false;
+                else
+                    bubbler = true;
+            }
+
+            if(key == XK_m)
+            {
+                game->createMissiles();
+            }
+        }
+        if(key == XK_w)
+        {
+            if(setbackground)
+                setbackground = false;
+            else 
+                setbackground = true;
+        }
+
+	if(key == XK_Escape)
+        {
+            game->run = false;
+        }
+    }	
+    return 0;
 }
 
 
 
 
 
+// check for button clicks?
+void check_mouse(XEvent *e, Game *game)
+{
+	static int savex = 0;
+	static int savey = 0;
+	
+	if (e->type == ButtonRelease) {
+		return;
+	}
+	if (e->type == ButtonPress) {
+		if (e->xbutton.button==1) {
+			//Left button was pressed
+			game->state = 3;	
+			return;
+		}
+		if (e->xbutton.button==3) {
+			//Right button was pressed
+			//std::cout << "right mouse b down" << std::endl;
+			game->run = false;
+			return;
+		}
+	}
+	//Did the mouse move?
+	if (savex != e->xbutton.x || savey != e->xbutton.y) 
+	{
 
 
+	}
+}
 
