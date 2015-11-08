@@ -22,6 +22,8 @@ int keys[65536];
 bool killmovement = false;
 
 
+unsigned long SCORE = 0;
+
 
 // Gordon's timer & x11/opengl code
 #include "gordoncode.cpp"
@@ -32,6 +34,8 @@ bool killmovement = false;
 int frames = 0;
 timespec start;
 int fps = 0; // USED FOR FRAMES PER SECOND
+
+timespec timeScore;
 
 int check_keys(XEvent *e, Game * game);
 void check_mouse(XEvent *e, Game *game);
@@ -52,6 +56,8 @@ int MAIN_MENU = 1;
 int RUN_GAME = 2;
 
 int STATE = MAIN_MENU;
+bool TOGGLE = true;
+
 
 // random function
 #define rnd() (float)rand() / (float)RAND_MAX
@@ -119,18 +125,22 @@ int main(int argc, char ** argv)
 	    setMenuBackground();
 	    glXSwapBuffers(dpy, win);
 	}
-	
-	
-	
+		
 	
 	
 	while(STATE == RUN_GAME && game.run)
 	{
-	   
+
 	    // check input
 	    XEvent e;
 	    while(XPending(dpy))
 	    {
+	        if(TOGGLE)
+	        {
+		   TOGGLE = false;
+		   pausegame = false;
+	        }
+
 		XNextEvent(dpy, &e);
 		check_keys(&e, &game);
 		check_resize(&e);
@@ -138,10 +148,19 @@ int main(int argc, char ** argv)
 		// if window resets, then the game should handle this event
 		game.setResolution(window_width, window_height);
 	    }
+	    
+
+	    
 
 	    clock_gettime(CLOCK_REALTIME, &timeCurrent);
 	    timeSpan = timeDiff(&timeStart, &timeCurrent);
 	    timeCopy(&timeStart, &timeCurrent);
+            
+	    if(!pausegame)
+	    {
+	
+		    SCORE++;
+	    }
 
 	    physicsCountdown += timeSpan;
 	    // check for collisions, move player
@@ -163,7 +182,7 @@ int main(int argc, char ** argv)
 		fps = 0;
 	    }
 	    fps++;
-
+	   
 	    render(&game);
 	    glXSwapBuffers(dpy, win);
 	}
@@ -213,11 +232,15 @@ void render(Game * game)
     r.left = 10;
     r.center = 0;
     //ggprint8b(&r, 16, 0x00FFFF00, "fps: %i",  static_cast<int>(fps/timeDiff(&start, &timeCurrent)));
-    ggprint8b(&r, 16, 0x00FFFF00, "PhysicsRate: %i", static_cast<int>(1/physicsRate));
-    ggprint8b(&r, 16, 0x00FFFF00, "water particles: %i", numParticles);
-    ggprint8b(&r, 16, 0x00FFFF00, "blood particles: %i", numblood);
-    ggprint8b(&r, 16, 0x00FFFF00, "Hit sides: %i", game->checkLeftScreenHit() || game->checkRightScreenHit());
-
+    if(!pausegame)
+    {
+    	ggprint8b(&r, 16, 0x00FFFF00, "PhysicsRate: %i", static_cast<int>(1/physicsRate));
+    	ggprint8b(&r, 16, 0x00FFFF00, "water particles: %i", numParticles);
+    	ggprint8b(&r, 16, 0x00FFFF00, "blood particles: %i", numblood);
+    	ggprint8b(&r, 16, 0x00FFFF00, "Hit sides: %i", game->checkLeftScreenHit() || game->checkRightScreenHit());
+    }
+    ggprint8b(&r, 16, 0x00FFFF00, "Score: %i", SCORE);
+    
     // debug/retrostyle mode
     if(!setbackground)
     {
