@@ -49,8 +49,9 @@ using std::endl;
 #define INITIAL_VELOCITY 5
 
 int MAIN_MENU = 1;
-
 int RUN_GAME = 2;
+
+int STATE = MAIN_MENU;
 
 // random function
 #define rnd() (float)rand() / (float)RAND_MAX
@@ -98,34 +99,34 @@ int main(int argc, char ** argv)
     clock_gettime(CLOCK_REALTIME, &timePause);
     clock_gettime(CLOCK_REALTIME, &timeStart);
     clock_gettime(CLOCK_REALTIME, &start);
-
+//    game.state = RUN_GAME;
     while(game.run)
     {
-        
 	
-	while(game.state == MAIN_MENU && game.run)
+         
+	
+	while(STATE == MAIN_MENU && game.run)
 	{
+	   
 	    XEvent menu;
 	    while(XPending(dpy))
 	    {
 		XNextEvent(dpy, &menu);
+		check_keys(&menu, &game);
 		check_mouse(&menu, &game);
+		game.setResolution(window_width, window_height);
 	    }
+	    setMenuBackground();
+	    glXSwapBuffers(dpy, win);
 	}
-
-//	while(game.state == PAUSE_MENU && game.run)
-//	{
-//	    XEvent pause;
-//	    while(XPending(dpy))
-//	    {
-//		XNextEvent(dpy, &pause);
-//		check_mouse(&pause, &game);
-//		check_keys(&pause, &game);
-//	    }
-//	}
-
-	while(game.state == RUN_GAME && game.run)
+	
+	
+	
+	
+	
+	while(STATE == RUN_GAME && game.run)
 	{
+	   
 	    // check input
 	    XEvent e;
 	    while(XPending(dpy))
@@ -191,6 +192,7 @@ void makeParticle(int x, int y)
 
 void render(Game * game)
 {
+
     glClearColor(0, 0, 0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 

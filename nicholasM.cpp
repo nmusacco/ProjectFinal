@@ -18,13 +18,80 @@
 //clicked by the users mouse, the buttons will be resume and quit
 //Also when the game is paused the score will be put up
 
-bool pausegame = false;
+struct button {
+	float width, height;
+//	float radius;
+	Vec center;
+};
+
+
+bool pausegame = true;
+
+void setMenuBackground()
+{
+        button startb;
+	startb.center.y  =  window_height - 250;
+	startb.center.x  = 200;
+	startb.width = 50;
+	startb.height = 50;
+
+	button exitb;
+	exitb.center.y = window_height - 250;
+	exitb.center.x = window_width  - 200;
+	exitb.width  = 50;
+	exitb.height = 50;
+
+	//int width = background->width;
+	//int height = background->height;
+	glColor3f(1.0, 1.0, 1.0);
+	glBindTexture(GL_TEXTURE_2D, menuTexture);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,1);
+	glVertex2i(0,0);
+	glTexCoord2f(0,0);
+	glVertex2i(0, window_height);//height/2);//window_height);
+	glTexCoord2f(1,0);
+	glVertex2i(window_width, window_height);//width/2, height/2);//window_width, window_height);
+	glTexCoord2f(1,1);
+	glVertex2i(window_width, 0);//width/2,0);//window_width, 0);
+	glEnd();
+
+
+//	glClear(GL_COLOR_BUFFER_BIT);
+
+	glColor3ub(0, 255, 0);
+	glPushMatrix();
+	glTranslatef(startb.center.x, startb.center.y, 0);
+	
+	glBegin(GL_QUADS);
+	    glVertex2i(-startb.width, -startb.height);
+	    glVertex2i(-startb.width,  startb.height);
+	    glVertex2i( startb.width,  startb.height);
+	    glVertex2i( startb.width, -startb.height);
+	glEnd();
+	glPopMatrix();
+
+	glColor3ub(255, 0, 0);
+	glPushMatrix();
+	glTranslatef(exitb.center.x, exitb.center.y, 0);
+	
+	glBegin(GL_QUADS);
+	    glVertex2i(-exitb.width, -exitb.height);
+	    glVertex2i(-exitb.width,  exitb.height);
+	    glVertex2i( exitb.width,  exitb.height);
+	    glVertex2i( exitb.width, -exitb.height);
+	glEnd();
+	glPopMatrix();
+	
+
+}
+
 
 
 void physics(Game * game)
 {
 
-    if(game->state == RUN_GAME && !pausegame)
+    if(STATE == RUN_GAME && !pausegame)
     {
 		game->inAir(); 
 		game->updatePlatforms();
@@ -163,7 +230,7 @@ int check_keys(XEvent *e, Game * game)
 		pausegame = false;
 	    
         }
-        if(game->state == RUN_GAME && !pausegame)
+        if(STATE == RUN_GAME && !pausegame)
         {
             if(key != XK_Left || key != XK_Right)
                 killmovement = false;
@@ -212,11 +279,14 @@ void check_mouse(XEvent *e, Game *game)
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button was pressed
-			if((window_height - mousey > 400)
-			 && window_height - mousey < 500)
+			if((window_height - mousey > window_height - 300)
+			 && window_height - mousey < window_height - 200)
 			{
-				if(mousex > 300 && mousex < 400)
-					game->state = RUN_GAME;	
+				if(mousex > 150 && mousex < 250)
+				{
+					STATE = RUN_GAME;
+					//pausegame = false;	
+				}
 			}
 			return;
 		}
