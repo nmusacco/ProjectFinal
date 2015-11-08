@@ -49,8 +49,8 @@ using std::endl;
 #define INITIAL_VELOCITY 5
 
 int MAIN_MENU = 1;
-int PAUSE_MENU = 2;
-int RUN_GAME = 3;
+
+int RUN_GAME = 2;
 
 // random function
 #define rnd() (float)rand() / (float)RAND_MAX
@@ -113,16 +113,16 @@ int main(int argc, char ** argv)
 	    }
 	}
 
-	while(game.state == PAUSE_MENU && game.run)
-	{
-	    XEvent pause;
-	    while(XPending(dpy))
-	    {
-		XNextEvent(dpy, &pause);
-		check_mouse(&pause, &game);
-		check_keys(&pause, &game);
-	    }
-	}
+//	while(game.state == PAUSE_MENU && game.run)
+//	{
+//	    XEvent pause;
+//	    while(XPending(dpy))
+//	    {
+//		XNextEvent(dpy, &pause);
+//		check_mouse(&pause, &game);
+//		check_keys(&pause, &game);
+//	    }
+//	}
 
 	while(game.state == RUN_GAME && game.run)
 	{

@@ -18,13 +18,13 @@
 //clicked by the users mouse, the buttons will be resume and quit
 //Also when the game is paused the score will be put up
 
-//bool pausegame = true;
+bool pausegame = false;
 
 
 void physics(Game * game)
 {
 
-    if(game->state == RUN_GAME)
+    if(game->state == RUN_GAME && !pausegame)
     {
 		game->inAir(); 
 		game->updatePlatforms();
@@ -157,13 +157,13 @@ int check_keys(XEvent *e, Game * game)
 		
         if(key == XK_p)
         {
-	    if(game->state == PAUSE_MENU)
-                game->state = RUN_GAME;
+	    if(!pausegame)
+                pausegame = true;
 	    else
-		game->state = PAUSE_MENU;
+		pausegame = false;
 	    
         }
-        if(game->state == RUN_GAME)
+        if(game->state == RUN_GAME && !pausegame)
         {
             if(key != XK_Left || key != XK_Right)
                 killmovement = false;
@@ -204,16 +204,20 @@ int check_keys(XEvent *e, Game * game)
 // check for button clicks?
 void check_mouse(XEvent *e, Game *game)
 {
-	static int savex = 0;
-	static int savey = 0;
-	
+	int mousex = e->xbutton.x;
+	int mousey = e->xbutton.y;
 	if (e->type == ButtonRelease) {
 		return;
 	}
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button was pressed
-			game->state = 3;	
+			if((window_height - mousey > 400)
+			 && window_height - mousey < 500)
+			{
+				if(mousex > 300 && mousex < 400)
+					game->state = RUN_GAME;	
+			}
 			return;
 		}
 		if (e->xbutton.button==3) {
@@ -224,10 +228,10 @@ void check_mouse(XEvent *e, Game *game)
 		}
 	}
 	//Did the mouse move?
-	if (savex != e->xbutton.x || savey != e->xbutton.y) 
-	{
-
-
-	}
+//	if (savex != e->xbutton.x || savey != e->xbutton.y) 
+//	{
+//
+//
+//	}
 }
 
