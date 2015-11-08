@@ -87,7 +87,6 @@ class Game
 		bool if_hit; // collision then true, 
 		bool if_jump; // if true allow jumping
 		bool run; // runs main loop
-		int state;
 		bool guts;
 		int window_height;
 		int window_width;

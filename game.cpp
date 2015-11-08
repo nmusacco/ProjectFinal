@@ -28,7 +28,6 @@ Game::Game()
 	if_hit = false;
 	run = true;
 	guts = false;
-	state = 1;
 }
 
 // create ONE missile
@@ -208,7 +207,7 @@ void Game::updatePlatforms()
 		if(platform[i].pos.y < 0)
 		{
 			srand(time(NULL));
-			platform[i].pos.x= rand()%window_width;
+			platform[i].pos.x= rand()%window_width-rand()%platform[i].width;
 			// h_w - h_w/5 * (i + 1) + player height * 2
 			platform[i].pos.y = window_height + platform[i].height;//-20;//window_height - 1.0/6.0 *window_height* (i + 1) + platform[i].height*2;
 		}
